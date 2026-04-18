@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Dashboard</title>
+    <title>My Interactive Dashboard</title>
     <!-- Gridstack CSS -->
     <link href="https://jsdelivr.net" rel="stylesheet"/>
     <style>
@@ -16,11 +16,10 @@
         body { 
             background: var(--bg-color); 
             margin: 0; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Segoe UI', sans-serif; 
             overflow: hidden; 
         }
         
-        /* Grid Background dots */
         #container { 
             height: 100vh; 
             width: 100vw; 
@@ -31,77 +30,40 @@
             background-size: 30px 30px;
         }
 
-        /* The Dock */
         #dock-container {
-            position: fixed; 
-            bottom: 20px; 
-            left: 50%; 
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(10px);
-            padding: 10px 25px; 
-            border-radius: 24px; 
-            border: 1px solid rgba(0,0,0,0.1);
-            display: flex; 
-            gap: 20px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15); 
-            z-index: 1000;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            padding: 10px 25px; border-radius: 24px; border: 1px solid rgba(0,0,0,0.1);
+            display: flex; gap: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 1000;
         }
 
         .dock-item {
-            cursor: pointer; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-            transition: transform 0.2s; 
-            font-size: 11px; 
-            font-weight: 600; 
-            color: #444;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center;
+            transition: transform 0.2s; font-size: 11px; font-weight: 600; color: #444;
         }
 
         .dock-item:hover { transform: translateY(-10px); }
         
         .icon { 
-            width: 42px; height: 42px; 
-            background: white; 
-            border-radius: 12px; 
-            border: 1px solid #ddd; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 22px; 
-            margin-bottom: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            width: 42px; height: 42px; background: white; border-radius: 12px; border: 1px solid #ddd; 
+            display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 4px;
         }
 
-        /* Tile Styling */
         .grid-stack-item-content { 
-            background: var(--tile-bg); 
-            border-radius: 12px; 
-            padding: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            border: 1px solid #eee;
-            display: flex;
-            flex-direction: column;
+            background: var(--tile-bg); border-radius: 12px; padding: 15px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #eee;
+            display: flex; flex-direction: column; position: relative;
         }
 
         .delete-btn { 
-            position: absolute; 
-            top: 8px; 
-            right: 8px; 
-            border: none; 
-            background: none; 
-            cursor: pointer; 
-            color: #ccc; 
-            font-size: 16px;
-            z-index: 10;
+            position: absolute; top: 5px; right: 5px; border: none; background: none; 
+            cursor: pointer; color: #ccc; font-size: 18px; z-index: 10;
         }
         
         .delete-btn:hover { color: #ff4d4d; }
 
         iframe, img { width: 100%; height: 100%; border: none; border-radius: 8px; object-fit: cover; }
         
-        /* Table Styling */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         td, th { border: 1px solid #eee; padding: 8px; text-align: left; }
     </style>
@@ -112,7 +74,6 @@
     <div class="grid-stack"></div>
 </div>
 
-<!-- Dock of Tools -->
 <div id="dock-container">
     <div class="dock-item" onclick="addBlock('text')"><div class="icon">📝</div><span>Note</span></div>
     <div class="dock-item" onclick="addBlock('table')"><div class="icon">📊</div><span>Table</span></div>
@@ -126,14 +87,15 @@
     </div>
 </div>
 
+<!-- Scripts must be in this specific order -->
 <script src="https://jsdelivr.net"></script>
+
 <script>
-    // Initialize Gridstack
+    // Initialize the Grid
     const grid = GridStack.init({
         float: true, 
         cellHeight: 60,
         margin: 10,
-        minRow: 1,
         resizable: { handles: 'all' }
     });
 
@@ -142,20 +104,27 @@
         let w = 4, h = 4;
 
         if (type === 'text') {
-            content = `<input type="text" placeholder="Title" style="border:none; outline:none; font-weight:bold; font-size:1.2rem; width:80%;">
-                       <textarea style="width:100%; flex-grow:1; border:none; outline:none; resize:none; margin-top:10px;" placeholder="Start typing..."></textarea>`;
+            content = `<input type="text" placeholder="Title" style="border:none; outline:none; font-weight:bold; font-size:1.2rem; width:85%;">
+                       <textarea style="width:100%; flex-grow:1; border:none; outline:none; resize:none; margin-top:10px; font-family:inherit;" placeholder="Start typing..."></textarea>`;
+            w = 3; h = 4;
         } 
         else if (type === 'table') {
             content = `<h3 contenteditable="true" style="margin:0; outline:none;">Untitled Table</h3>
-                       <div style="overflow:auto;"><table id="myTable"><tr><th>Item</th><th>Status</th></tr><tr><td contenteditable="true"></td><td contenteditable="true"></td></tr></table></div>
+                       <div style="overflow:auto; flex-grow:1;">
+                        <table>
+                            <tr><th>Item</th><th>Status</th></tr>
+                            <tr><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+                        </table>
+                       </div>
                        <button onclick="addRow(this)" style="margin-top:10px; border:1px dashed #ccc; background:none; width:100%; cursor:pointer;">+ Row</button>`;
+            w = 4; h = 5;
         }
         else if (type === 'embed') {
             const url = prompt("Paste YouTube, Spotify, or Website URL:");
             if (!url) return;
             let cleanUrl = url.replace("watch?v=", "embed/").replace("playlist/", "embed/playlist/");
             content = `<iframe src="${cleanUrl}"></iframe>`;
-            w = 6; h = 6;
+            w = 6; h = 5;
         } 
         else if (type === 'image') {
             const input = document.createElement('input');
@@ -189,20 +158,18 @@
         row.innerHTML = '<td contenteditable="true"></td><td contenteditable="true"></td>';
     }
 
-    // SAVE/LOAD SYSTEM
     function saveDashboard() {
         const data = [];
         document.querySelectorAll('.grid-stack-item').forEach(el => {
             const node = el.gridstackNode;
-            // We save the actual HTML inside the content div to preserve text/images
             const innerHTML = el.querySelector('.grid-stack-item-content').innerHTML;
             data.push({ x: node.x, y: node.y, w: node.w, h: node.h, content: innerHTML });
         });
         const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'dashboard-layout.json';
-        link.click();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'layout.json';
+        a.click();
     }
 
     function loadDashboard(input) {
