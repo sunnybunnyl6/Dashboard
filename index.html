@@ -3,52 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Dashboard</title>
-    <!-- Gridstack CSS -->
+    <title>My Interactive Dashboard</title>
     <link href="https://jsdelivr.net" rel="stylesheet"/>
     <style>
-        body { background-color: #f0f2f5; margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; }
-        .grid-stack-item-content {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 15px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        h3 { margin-top: 0; color: #333; font-size: 1.1rem; }
+        :root { --bg: #f8f9fa; --sidebar: #ffffff; --primary: #5c67f2; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; display: flex; margin: 0; height: 100vh; }
+        
+        /* Sidebar Dock */
+        #dock { width: 220px; background: var(--sidebar); border-right: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        #dock h2 { font-size: 1.2rem; margin-bottom: 20px; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; text-align: left; }
+        .add-btn:hover { opacity: 0.9; }
+
+        /* Dashboard Area */
+        #content { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .grid-stack { background: rgba(0,0,0,0.02); min-height: 500px; border-radius: 15px; }
+        .grid-stack-item-content { background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); padding: 15px; }
+        .remove-btn { position: absolute; top: 5px; right: 5px; cursor: pointer; border: none; background: #ff4d4d; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="grid-stack">
-        <!-- Tile 1: School Schedule -->
-        <div class="grid-stack-item" gs-w="3" gs-h="4">
-            <div class="grid-stack-item-content">
-                <h3>Mon, Tue, Thurs</h3>
-                <p>8:20-9:03 1st Hour</p>
-                <p>9:06-9:53 2nd Hour</p>
-            </div>
-        </div>
-
-        <!-- Tile 2: Spotify Embed -->
-        <div class="grid-stack-item" gs-w="4" gs-h="3">
-            <div class="grid-stack-item-content">
-                <h3>Music</h3>
-                <iframe style="border-radius:12px" src="https://spotify.com" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-            </div>
-        </div>
+    <!-- The Dock -->
+    <div id="dock">
+        <h2>Tools</h2>
+        <button class="add-btn" onclick="addTile('note')">+ Add Note</button>
+        <button class="add-btn" onclick="addTile('spotify')">+ Embed Spotify</button>
+        <button class="add-btn" onclick="addTile('video')">+ Embed Video</button>
+        <p style="font-size: 0.8rem; color: #666; margin-top: 20px;">Click to add to board!</p>
     </div>
 
-    <!-- Gridstack JS -->
+    <!-- The Dashboard -->
+    <div id="content">
+        <div class="grid-stack"></div>
+    </div>
+
     <script src="https://jsdelivr.net"></script>
     <script>
-        // This initializes the grid so you can drag and resize things
-        var grid = GridStack.init({
-            cellHeight: 80,
-            margin: 10
-        });
+        // Initialize Grid
+        const grid = GridStack.init({ cellHeight: 100, margin: 10 });
+
+        function addTile(type) {
+            let content = "";
+            let w = 3, h = 2;
+
+            if (type === 'note') {
+                content = `<h3>New Note</h3><textarea style="width:90%; height:60%; border:none; outline:none; resize:none;" placeholder="Type here..."></textarea>`;
+            } else if (type === 'spotify') {
+                content = `<h3>Spotify</h3><iframe style="border-radius:8px" src="https://spotify.com" width="100%" height="100%" frameBorder="0" allow="encrypted-media"></iframe>`;
+                w = 4; h = 3;
+            } else if (type === 'video') {
+                content = `<h3>YouTube</h3><iframe width="100%" height="100%" src="https://youtube.com" frameborder="0" allowfullscreen></iframe>`;
+                w = 4; h = 3;
+            }
+
+            // Create the element string
+            const el = `<div><div class="grid-stack-item-content">
+                            <button class="remove-btn" onclick="grid.removeWidget(this.parentElement.parentElement)">×</button>
+                            ${content}
+                        </div></div>`;
+            
+            // Add to grid
+            grid.addWidget(el, {w: w, h: h});
+        }
+
+        // Add an initial greeting tile
+        addTile('note');
     </script>
 </body>
 </html>
