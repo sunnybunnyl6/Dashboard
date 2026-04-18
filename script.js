@@ -1,103 +1,64 @@
-// 1. Initialize the Grid with specific settings
-const grid = GridStack.init({
-    float: true, 
-    cellHeight: 60,
-    margin: 10,
-    resizable: { handles: 'all' }
+// 1. Wait for the page to be ready before starting the grid
+let grid;
+document.addEventListener('DOMContentLoaded', function() {
+    // Initializing the Gridstack engine
+    grid = GridStack.init({
+        float: true,          // Blocks stay where you drop them
+        cellHeight: 70,       // Vertical size of one grid square
+        margin: 10,           // Gap between tiles
+        resizable: { handles: 'all' } // Resize from any side/corner
+    });
+    console.log("Grid is ready!");
 });
 
-// 2. Upgraded Add Row function (Uses event delegation so it never breaks)
-document.addEventListener('click', function (e) {
-    if (e.target && e.target.classList.contains('row-btn')) {
-        const table = e.target.previousElementSibling.querySelector('table');
-        const row = table.insertRow(-1);
-        row.innerHTML = '<td contenteditable="true"></td><td contenteditable="true"></td>';
-    }
-});
-
+// 2. The brain behind adding new tiles
 function addBlock(type) {
+    if (!grid) return alert("Dashboard is still loading...");
+
     let content = '';
-    let w = 4, h = 4;
+    let w = 4, h = 4; // Default width and height
 
     if (type === 'text') {
-        content = `<input type="text" placeholder="Title" style="border:none; outline:none; font-weight:bold; font-size:1.2rem; width:85%;">
-                   <textarea style="width:100%; flex-grow:1; border:none; outline:none; resize:none; margin-top:10px; font-family:inherit;" placeholder="Start typing..."></textarea>`;
+        content = `<input type="text" placeholder="Title" style="border:none; outline:none; font-weight:bold; font-size:1.1rem; width:85%;">
+                   <textarea style="width:100%; flex-grow:1; border:none; outline:none; resize:none; margin-top:10px;" placeholder="Start writing..."></textarea>`;
         w = 3; h = 4;
     } 
     else if (type === 'table') {
-        // ADDED: 'row-btn' class so the upgrade logic above can find it
         content = `<h3 contenteditable="true" style="margin:0; outline:none;">Untitled Table</h3>
                    <div style="overflow:auto; flex-grow:1;">
-                    <table>
-                        <tr><th>Item</th><th>Status</th></tr>
-                        <tr><td contenteditable="true"></td><td contenteditable="true"></td></tr>
+                    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                        <tr><th style="border:1px solid #ddd; padding:8px;">Item</th><th style="border:1px solid #ddd; padding:8px;">Status</th></tr>
+                        <tr><td contenteditable="true" style="border:1px solid #ddd; padding:8px;"></td><td contenteditable="true" style="border:1px solid #ddd; padding:8px;"></td></tr>
                     </table>
                    </div>
                    <button class="row-btn" style="margin-top:10px; border:1px dashed #ccc; background:none; width:100%; cursor:pointer;">+ Row</button>`;
         w = 4; h = 5;
     }
     else if (type === 'embed') {
-        const url = prompt("Paste YouTube, Spotify, or Website URL:");
+        const url = prompt("Paste your link here (YouTube, Spotify, or Web):");
         if (!url) return;
-        let cleanUrl = url;
-        // Auto-fix for common embed types
-        if(url.includes('://youtube.com')) cleanUrl = url.replace("watch?v=", "embed/");
-        if(url.includes('spotify.com')) cleanUrl = url.replace("/playlist/", "/embed/playlist/");
-        
-        content = `<iframe src="${cleanUrl}"></iframe>`;
+        // Fixes YouTube/Spotify links automatically
+        let cleanUrl = url.replace("watch?v=", "embed/").replace("playlist/", "embed/playlist/");
+        content = `<iframe src="${cleanUrl}" style="width:100%; height:100%; border:none; border-radius:8px;"></iframe>`;
         w = 6; h = 5;
-    } 
-    else if (type === 'image') {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = e => {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const el = `<div><div class="grid-stack-item-content">
-                                <button class="delete-btn" onclick="grid.removeWidget(this.parentElement.parentElement)">✕</button>
-                                <img src="${ev.target.result}">
-                            </div></div>`;
-                grid.addWidget(el, {w: 4, h: 4});
-            };
-            reader.readAsDataURL(e.target.files);
-        };
-        input.click();
-        return;
     }
 
-    const el = `<div><div class="grid-stack-item-content">
-                    <button class="delete-btn" onclick="grid.removeWidget(this.parentElement.parentElement)">✕</button>
-                    ${content}
-                </div></div>`;
+    // Gridstack requires this specific <div> nesting to make items draggable
+    const el = `<div>
+                    <div class="grid-stack-item-content">
+                        <button class="delete-btn" onclick="grid.removeWidget(this.parentElement.parentElement)">✕</button>
+                        ${content}
+                    </div>
+                </div>`;
+    
     grid.addWidget(el, {w: w, h: h});
 }
 
-// 3. Save/Load stays the same as it's already quite robust
-function saveDashboard() {
-    const data = [];
-    document.querySelectorAll('.grid-stack-item').forEach(el => {
-        const node = el.gridstackNode;
-        const innerHTML = el.querySelector('.grid-stack-item-content').innerHTML;
-        data.push({ x: node.x, y: node.y, w: node.w, h: node.h, content: innerHTML });
-    });
-    const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'layout.json';
-    a.click();
-}
-
-function loadDashboard(input) {
-    const reader = new FileReader();
-    reader.onload = function() {
-        const data = JSON.parse(reader.result);
-        grid.removeAll();
-        data.forEach(item => {
-            const el = `<div><div class="grid-stack-item-content">${item.content}</div></div>`;
-            grid.addWidget(el, { x: item.x, y: item.y, w: item.w, h: item.h });
-        });
-    };
-    reader.readAsText(input.files);
-}
-
+// 3. Keep tables interactive by allowing row additions
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('row-btn')) {
+        const table = e.target.previousElementSibling.querySelector('table');
+        const row = table.insertRow(-1);
+        row.innerHTML = '<td contenteditable="true" style="border:1px solid #ddd; padding:8px;"></td><td contenteditable="true" style="border:1px solid #ddd; padding:8px;"></td>';
+    }
+});
